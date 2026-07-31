@@ -54,16 +54,17 @@ Docker runs applications in isolated "containers". Compose is a file format (`do
 
 Instead of binding 9Router to a public port (`-p 20128:20128`), the app container **shares the network namespace** of a Tailscale container (`network_mode: "service:tailscale-9router"`). The Tailscale container is the only one that talks to the network; it terminates HTTPS with a **Let's Encrypt certificate issued automatically by Tailscale** and proxies traffic to `127.0.0.1:20128` inside the sidecar's network namespace.
 
-```
-                          Tailscale tailnet (private, encrypted)
-┌─────────────────┐             ┌──────────────────────────────────────────────┐
-│  Your laptop    │  WireGuard   │  Oracle Cloud VM (OCI)                        │
-│  (tailscale up) │◄────────────►│  ts-9router  (tailscale/tailscale sidecar)    │
-│  macOS / Linux  │  100.x.x.x   │    │                                         │
-└─────────────────┘              │    │  HTTPS :443 → proxy → http://127.0.0.1:20128
-                                 │    ▼                                         │
-                                 │  9router (shares network namespace)           │
-                                 └──────────────────────────────────────────────┘
+```mermaid
+flowchart LR
+    subgraph tailnet["Tailscale tailnet — private & encrypted"]
+        laptop["Your laptop<br/>(Tailscale up)<br/>macOS / Linux"]
+        subgraph vm["Oracle Cloud VM (OCI)"]
+            ts["ts-9router<br/>Tailscale sidecar container<br/>tailscale/tailscale"]
+            app["9router app<br/>shares the sidecar's network namespace<br/>listens on 127.0.0.1:20128"]
+            ts -->|"HTTPS :443 — MagicDNS + Let's Encrypt<br/>proxy"| app
+        end
+        laptop <-->|"WireGuard<br/>100.x.x.x"| ts
+    end
 ```
 
 **Why this approach?**
