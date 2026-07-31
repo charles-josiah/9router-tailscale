@@ -1,0 +1,8 @@
+.env
+*.env
+!.env.example
+9router-data/
+n9router-usage/
+ts-9router-state/
+*.log
+.DS_Store

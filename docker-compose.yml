@@ -1,0 +1,49 @@
+services:
+  tailscale-9router:
+    image: tailscale/tailscale:latest
+    container_name: ts-9router
+    hostname: 9router
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY}
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=false
+      - TS_SERVE_CONFIG=/config/9router-serve.json
+      - TS_EXTRA_ARGS=${TS_EXTRA_ARGS:-}
+    volumes:
+      - ts-9router-state:/var/lib/tailscale
+      - ./config:/config
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    restart: unless-stopped
+
+  9router:
+    build:
+      context: .
+    container_name: 9router
+    network_mode: "service:tailscale-9router"
+    depends_on:
+      - tailscale-9router
+    volumes:
+      - 9router-data:/app/data
+      - n9router-usage:/root/.n9router
+    environment:
+      - PORT=20128
+      - HOSTNAME=0.0.0.0
+      - NODE_ENV=production
+      - JWT_SECRET=${JWT_SECRET}
+      - INITIAL_PASSWORD=${INITIAL_PASSWORD}
+      - NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL:-http://9router:20128}
+      - NEXT_PUBLIC_CLOUD_URL=https://9router.com
+      - DATA_DIR=/app/data
+      - ENABLE_REQUEST_LOGS=true
+      - AUTH_COOKIE_SECURE=true
+      - REQUIRE_API_KEY=false
+    restart: unless-stopped
+
+volumes:
+  9router-data:
+  n9router-usage:
+  ts-9router-state:
