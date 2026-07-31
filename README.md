@@ -91,6 +91,7 @@ Understanding the file layout is essential before running any command. There are
 ```
 9router-tailscale/
 ├── README.md                     ← this guide
+├── LICENSE                       ← MIT license
 ├── docker-compose.yml            ← the Compose definition (Tailscale sidecar + 9Router)
 ├── config/
 │   └── 9router-serve.json        ← Tailscale serve rules (HTTPS :443 → app)
@@ -136,10 +137,29 @@ Persistent data is stored in **named volumes**, not in files. They survive conta
 
 ## 4. Prerequisites
 
-- A Linux VM with Docker and Docker Compose (this guide was validated on **Oracle Cloud / OCI** — Oracle Linux 8, user `ubuntu` with passwordless `sudo`). Any VM with `/dev/net/tun` works.
+- A Linux VM with Docker and Docker Compose (this guide was validated on **Oracle Cloud / OCI** — Oracle Linux 8, user `ubuntu` with passwordless `sudo`). **Any VPS with `/dev/net/tun` works** — DigitalOcean, Hetzner, AWS, GCP, Azure, or a home server behind NAT.
 - A **Tailscale account** (free tier: up to 100 devices, 3 users).
 - A **Tailscale auth key** (`TS_AUTHKEY`) generated in the admin console → **Settings → Keys**. Use a one-time key, or a reusable key if you plan to recreate the node.
 - Basic familiarity with a terminal and `sudo`.
+
+### Quick verification
+
+Run these commands on your server to confirm the environment is ready:
+
+```bash
+# Docker installed?
+docker --version
+# Docker Compose v2 (plugin) or v1 (standalone)?
+docker compose version   # or: docker-compose --version
+
+# TUN device available?
+ls -la /dev/net/tun
+# If missing (rare on modern VPS), create it:
+# sudo mkdir -p /dev/net && sudo mknod /dev/net/tun c 10 200 && sudo chmod 600 /dev/net/tun
+
+# Your user can use sudo?
+sudo -v
+```
 
 ---
 
